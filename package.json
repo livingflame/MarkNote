@@ -1,0 +1,42 @@
+{
+  "name": "marknote",
+  "version": "1.0.0",
+  "description": "MarkNote - Cloud Markdown Notebook\r =========================\r v2 - Alpha 01",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/livingflame/MarkNote.git"
+  },
+  "keywords": [
+    "Note",
+    "taking",
+    "using",
+    "Markedown",
+    "PHP",
+    "MySQL"
+  ],
+  "author": "livingflame",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/livingflame/MarkNote/issues"
+  },
+  "homepage": "https://github.com/livingflame/MarkNote#readme",
+  "dependencies": {
+    "highlight.js": "^11.3.1",
+    "jquery": "^3.6.0",
+    "marked": "^4.0.15",
+    "simplemde": "^1.11.2",
+    "sortablejs": "^1.15.0"
+  },
+  "devDependencies": {
+    "css-loader": "^6.7.1",
+    "mini-css-extract-plugin": "^2.6.0",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
+  }
+}

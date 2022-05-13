@@ -1,4 +1,19 @@
 var NOTEID=0;
+var simplemde = new SimpleMDE({ 
+	element: document.getElementById("editor-textarea"),
+	previewRender: function(plainText, preview) { // Async method
+		setTimeout(function(){
+			preview.innerHTML = marked.parse(plainText);
+		}, 250);
+
+		return "Loading...";
+	},
+	forceSync: true,
+	autofocus: true,
+	hideIcons: ["preview"],
+	status: false,
+	showIcons: ['strikethrough','clean-block','horizontal-rule',"code", "table"],
+});
 
 function convertDate(unixTime){
 	var unixTimestamp = new Date(unixTime * 1000);
@@ -19,10 +34,10 @@ function doLayout(){
 		|| document.documentElement.clientWidth
 		|| document.body.clientWidth;
 
-	$("#content").height(winh-56);
-	$("#toolbar").height(winh-56);
-	$("#sidebar").height(winh-56);
-	$("#editor").height(winh-56);
+	$("#content").height(winh-100);
+	$("#toolbar").height(winh-100);
+	$("#sidebar").height(winh-100);
+	$("#editor").height(winh-100);
 
 	$("#editor").width(winw-288);
 
@@ -192,6 +207,7 @@ function newNotebook(){
 	});
 }
 
+
 function newNoteBelow(){
 	var newname = prompt();
 	if(newname == null){
@@ -250,7 +266,7 @@ function loadNote(id){
 	},
 	function(data,status){
 		// alert("Status: " + status + data );
-		EditorAce.session.setValue(data);
+		simplemde.value(data);
 		updateEditorShow();
 		updateStatusBar("#0f2", "Note loaded");
 		NoteLoding=false;
@@ -308,7 +324,7 @@ function autosaveNote(){
 			$.post("include/note.php",{
 				action:"saveNote",
 				id:NOTEID,
-				content:EditorAce.getValue()
+				content:simplemde.value()
 			},
 			function(data,status){
 				// alert("Status: " + status + data );
@@ -327,7 +343,7 @@ function saveNote(){
 		$.post("include/note.php",{
 			action:"saveNote",
 			id:NOTEID,
-			content:EditorAce.getValue()
+			content:simplemde.value()
 		},
 		function(data,status){
 			// alert("Status: " + status + data );
@@ -451,8 +467,7 @@ function updateEditorShow(){
 	if(!EditorShowProcessing){
 		EditorShowProcessing = true;
 
-		document.getElementById("editor-show-preprocess").innerHTML = marked(EditorAce.getValue());
-		Prism.highlightAll();
+		document.getElementById("editor-show-preprocess").innerHTML = marked.parse(simplemde.value());
 
 		MathJax.Hub.Queue(["Typeset",MathJax.Hub,"editor-show-preprocess"], function(){
 			document.getElementById("editor-show").innerHTML = document.getElementById("editor-show-preprocess").innerHTML;
@@ -525,7 +540,6 @@ function noteContextClick(operation){
 }
 
 
-var EditorAce;
 var NoteLoding=false;
 $(document).ready(function(){
 	loadNotelist();
@@ -611,21 +625,17 @@ $(document).ready(function(){
 			document.onmousemove = null;
 			document.onmouseup = null;
 			oMove.releaseCapture && oMove.releaseCapture();
-			EditorAce.resize();
+			
 		};
 		oMove.setCapture && oMove.setCapture();
 		return false;
 	};
 
-	//初始化ACE编辑器
-	EditorAce = ace.edit("editor-ace");
-	EditorAce.setTheme("ace/theme/tomorrow_night_eighties");
-	EditorAce.getSession().setMode("ace/mode/markdown");
-	EditorAce.getSession().setUseWrapMode(true);
+
 	updateEditorShow();
 
 	//ACE编辑器的内容改变事件
-	EditorAce.getSession().on("change", function(e){
+	simplemde.codemirror.on("change", function(e){
 		if(!NoteLoding){
 			updateEditorShow();
 			showNotsaveLable();
@@ -638,7 +648,7 @@ $(document).ready(function(){
 		elements: ["editor-show"]
 	});
 
-	$(".ace_scrollbar-v").attr("id","editor-ace-scrollbar"); //给ACE编辑器的滚动条添加名称
+	$(".CodeMirror-vscrollbar").attr("id","editor-ace-scrollbar"); //给ACE编辑器的滚动条添加名称
 
 	$("#editor-ace-scrollbar").scroll(function(){
 		var t = $(this)[0].scrollTop; //获取编辑区滚动值
