@@ -1,4 +1,3 @@
-
 body {
 	font-family: 'Open Sans', sans-serif;
 	line-height: 1.75em;
@@ -6,6 +5,7 @@ body {
 	background-color: #222;
 	color: #aaa;
 	margin: 0;
+	padding: 0;
 }
 p {
 	font-size: 16px;
@@ -136,6 +136,7 @@ li {
 	display: block;
 	margin-top: -2px;
 	font-size: 11px;
+	line-height: 11px;
 }
 
 #content{
@@ -174,14 +175,6 @@ li {
 }
 
 
-
-
-
-
-
-
-
-
 #sidebar{
 	position: absolute;
 	left: 48px;
@@ -191,13 +184,14 @@ li {
 	overflow: auto;
 }
 
-#sidebar-status{
-	height: 32px;
+#status{
+	height: 48px;
 	padding: 4px 15px;
-	background-color: #181818;
+	float:right;
+	line-height: 48px;
 }
 
-#sidebar-status-icon{
+#status-icon{
 	margin-left: 5px;
 	color: #f1c40f;
 }
@@ -268,11 +262,10 @@ li {
 
 #editor{
 	position: absolute;
-	left: 288px;
 	overflow: hidden;
 }
 
-#editor-ace, #editor-move, #editor-show{
+#editor-ace, #editor-move{
 	display: inline-block;
 	position: absolute;
 	height: 100%;
@@ -281,8 +274,6 @@ li {
 #editor-ace{
 	font: 14px 'Source Code Pro', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
 	line-height: 1.3;
-	padding-top: 25px;
-	padding-bottom: 25px;
 	box-sizing: border-box;
 }
 
@@ -447,7 +438,6 @@ pre[class*=language-]>code[data-language]::before{
 }
 
 #sidebar-properties-header{
-	height: 80px;
 	width: 100%;
 	padding: 19px 20px;
 }

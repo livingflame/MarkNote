@@ -38,9 +38,7 @@
 		return $array;
 	}
 
-
 	$sql = new mysqli($sql_host, $sql_user, $sql_passwd, $sql_name);
-
 
 	if( $sql->connect_errno ){
 		?>

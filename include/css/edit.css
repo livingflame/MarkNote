@@ -155,13 +155,14 @@ h1,h2,h3{
 	overflow: auto;
 }
 
-#sidebar-status{
-	height: 32px;
+
+#status{
+	height: 56px;
 	padding: 4px 15px;
-	background-color: #181818;
+	float:right;
 }
 
-#sidebar-status-icon{
+#status-icon{
 	margin-left: 5px;
 	color: #f1c40f;
 }

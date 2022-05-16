@@ -69,25 +69,35 @@ function doLayout(){
         || document.documentElement.clientWidth
         || document.body.clientWidth;
 
-    $("#content").height(winh-100);
-    $("#toolbar").height(winh-100);
-    $("#sidebar").height(winh-100);
-    $("#editor").height(winh-100);
+    $("#content").height(winh-56);
+    $("#toolbar").height(winh-56);
+    $("#sidebar").height(winh-56);
+    $("#editor").height(winh-56);
+    $("#editor-move").height(winh-56);
+    $("#editor-show").height(winh-56-40);
 
-    $("#editor").width(winw-288);
+    
+
+    var toolbar_width = $('#toolbar').outerWidth();
+    var sidebar_width = $('#sidebar').outerWidth();
+    var emove_width = $('#editor-move').outerWidth();
+
+
+    $("#editor").width(winw-(toolbar_width + sidebar_width + emove_width));
+    
+    
+    simplemde.codemirror.setSize(null, winh-110);
+    document.getElementById("editor-move").style.left  = (toolbar_width + sidebar_width) + "px";
+    document.getElementById("editor").style.left  = (toolbar_width + sidebar_width + emove_width) + "px";
 
     if(edit_mode){
-        document.getElementById("editor-move").style.left  = (winw-240)/2 + "px";
-        document.getElementById("editor-ace").style.width = (winw-240)/2 + "px";
-        document.getElementById("editor-show").style.width = (winw-240)/2 - 53 + "px";
-        document.getElementById("editor-show").style.marginLeft = (winw-240)/2 + 5 + "px";
-        document.getElementById("editor-move").style.display = "block";
+        document.getElementById("editor-ace").style.width =  (winw-(toolbar_width + sidebar_width + emove_width)) + "px";
         document.getElementById("editor-ace").style.display = "block";
+        document.getElementById("editor-show").style.display = "none";
     } else {
-        document.getElementById("editor-move").style.display = "none";
+        document.getElementById("editor-show").style.display = "block";
         document.getElementById("editor-ace").style.display = "none";
-        document.getElementById("editor-show").style.width = "auto";
-        document.getElementById("editor-show").style.marginLeft = "0px";
+        document.getElementById("editor-show").style.width = (winw-(toolbar_width + sidebar_width + emove_width)) + "px";
     }
 
 }
@@ -119,34 +129,20 @@ function loadNotelist(){
         Sortable.create(notelist, {
             group: {
               name: "notelist",
-              put: ["notebooklist", "sublist"],
+              put: ["sublist"],
               pull:true
             },
             ghostClass: 'notelist-item-moving',
             animation: 150,
-            draggable: ".notelist-item-single",
-            onSort: function(evt){
-                updateList();
-            }
-        });
-
-        // list 2: notebooks in list
-        Sortable.create(notelist, {
-            group: {
-              name: "notebooklist",
-              put: ["notelist", "sublist"],
-              pull:true
-            },
-            ghostClass: 'notelist-item-moving',
-            animation: 150,
-            draggable: ".notelist-folder",
-            onSort: function(evt){
-                updateList();
+            draggable: ".notelist-item-single,.notelist-folder",
+            onSort: function(evt,test,test2){
+                updateList(notelist);
             }
         });
 
         // other lists: notes in each notebooks
         $("#sidebar-notelist .notelist-folder").each(function(){
+            var sub_list = this;
             Sortable.create(this, {
                 group: {
                   name: "sublist",
@@ -156,8 +152,8 @@ function loadNotelist(){
                 ghostClass: 'notelist-item-moving',
                 animation: 150,
                 draggable: ".notelist-item-subnote",
-                onSort: function(evt){
-                    updateList();
+                onSort: function(evt,test,test2){
+                    updateSubList(sub_list);;
                 }
             });
         });
@@ -185,38 +181,42 @@ function loadNotelist(){
         }
     });
 }
+function updateSubList(list){
+    var newList = [];
 
-function updateList(){
-    var theList = $("#sidebar-notelist");
+    $(list).children('.notelist-item-single').removeClass('notelist-item-single').addClass('notelist-item-subnote');
 
-    theList.children(".notelist-item-subnote").addClass("notelist-item-single");
-    theList.children(".notelist-item-subnote").removeClass("notelist-item-subnote");
-
-    theList.children(".notelist-folder").children(".notelist-item-single").addClass("notelist-item-subnote");
-    theList.children(".notelist-folder").children(".notelist-item-single").removeClass("notelist-item-single");
-
-    if($("#notelist-item-"+NOTEID).hasClass("notelist-item-subnote")){
-        $("#notelist-item-"+NOTEID).parent().parent().children(".notelist-folder").children(".notelist-item-notebook-title").removeClass("notelist-item-selected");
-        $("#notelist-item-"+NOTEID).parent().children(".notelist-item-notebook-title").addClass("notelist-item-selected");
-    }else{
-        $("#notelist-item-"+NOTEID).parent().children(".notelist-folder").children(".notelist-item-notebook-title").removeClass("notelist-item-selected");
-    }
-
-    var newList = new Array();
-
-    theList.children().each(function(){
-        if( $(this).hasClass("notelist-item-single") ){
-            if($(this).attr("id")){
-                newList.push(parseInt( $(this).attr("id") ));
-            }
+    $(list).children('.notelist-item-subnote').each(function(){
+        var noteid = $(this).attr("data-note-id");
+        if(noteid){
+            newList.push(noteid);
         }
-        if( $(this).hasClass("notelist-folder") ){
-            var tmp = new Array();
-            tmp.push( $(this).attr('title') );
-            $(this).children(".notelist-item-subnote").each(function(){
-                tmp.push(parseInt( $(this).attr("id").substring(14) ));
-            });
-            newList.push(tmp);
+    });
+
+    var parent_id = $(list).attr('data-note-id');
+
+    var newListJSON = JSON.stringify(newList);
+    // alert(newListJSON);
+
+    $.post("include/note.php",{
+        action:"updateNoteList",
+        list:newListJSON,
+        parent_id:parent_id
+    },
+    function(data,status){
+        // alert("Status: " + status + data );
+    });
+}
+function updateList(list){
+    
+    var newList = [];
+
+    $(list).children('.notelist-item-subnote').removeClass('notelist-item-subnote').addClass('notelist-item-single');
+
+    $(list).children('.notelist-item-single,.notelist-folder').each(function(){
+        var noteid = $(this).attr("data-note-id");
+        if(noteid){
+            newList.push(noteid);
         }
     });
 
@@ -230,7 +230,6 @@ function updateList(){
     function(data,status){
         // alert("Status: " + status + data );
     });
-
 }
 
 function newNote(){
@@ -291,8 +290,7 @@ $('body').on('click','.notelist-item-subnote2',function(e){
     newSubnote(notebook)
 });
 
-function loadNote(id){
-    updateStatusBar("#f1c40f", "Loading note...");
+function loadNoteActions(id){
     if(NOTEID){
         if(NOTEID == id){
             updateStatusBar("#0f2", "Note loaded");
@@ -310,6 +308,11 @@ function loadNote(id){
     if($("#notelist-item-"+NOTEID).hasClass("notelist-item-subnote")){
         $("#notelist-item-"+NOTEID).parent().children(".notelist-item-notebook-title").addClass("notelist-item-selected");
     }
+}
+
+function loadNote(id){
+    updateStatusBar("#f1c40f", "Loading note...");
+    loadNoteActions(id);
     NoteLoding=true;
     $.post("include/note.php",{
         action:"getNote",
@@ -321,6 +324,28 @@ function loadNote(id){
         $('#source').val(data);
         updateEditorShow();
         updateStatusBar("#0f2", "Note loaded");
+
+        NoteLoding=false;
+    });
+}
+
+
+function editNode(id){
+    updateStatusBar("#f1c40f", "Loading note...");
+    loadNoteActions(id);
+    NoteLoding=true;
+    $.post("include/note.php",{
+        action:"getNote",
+        id:id
+    },
+    function(data,status){
+        // alert("Status: " + status + data );
+        simplemde.value(data);
+        $('#source').val(data);
+        updateEditorShow();
+        updateStatusBar("#0f2", "Note loaded");
+        edit_mode = true;
+        doLayout();
 
         NoteLoding=false;
     });
@@ -442,6 +467,11 @@ function delNote(id){
             simplemde.value(data);
             updateEditorShow();
             simplemde.codemirror.refresh();
+            edit_mode = false;
+            doLayout();
+            updateStatusBar("#0f2", "Note deleted");
+        } else {
+            updateStatusBar("#0f2", "Note deleted");
         }
 
 
@@ -469,16 +499,35 @@ function hideNotebookDelIcon(item){
     $(item).find(".i-notelist-item-del").hide();
 }
 
-function toggleNotebook(item){
+function updateNoteSettings(id,settings,call){
+    $.post("include/note.php",{
+        action:"updateNoteSettings",
+        id:id,
+        settings: JSON.stringify(settings)
+    },
+    function(data,status){
+        var callable = call || $.noop;
+        callable.call(this, data,status);
+    });
+}
 
+function toggleNotebook(item){
+    var opened = false;
+    var note_id = $(item).attr('data-note-id');
+    var settings = {};
     if($(item).hasClass("notebook-opened")){
         $(item).parent().animate({height:"32px"});
         $(item).parent().children("i").animate({rotation: -90});
+        opened = false;
     }else{
         $(item).parent().animate({height:$(item).parent().children(".notelist-item").length*32+"px" });
         $(item).parent().children("i").animate({rotation: 0});
+        opened = true;
     }
+    
     $(item).toggleClass("notebook-opened");
+    settings['notebook-opened'] = opened;
+    updateNoteSettings(note_id,settings);
 }
 $('body').on('click','.notebook-toggleNotebook',function(e){
     e.preventDefault();
@@ -496,9 +545,7 @@ function showProperties(id, notesettings){
 
     notesettings = JSON.parse(notesettings);
     $("#sidebar-properties-header-notename").html(notesettings['title']);
-    $("#sidebar-properties-header-notetype").html("Markdown Note");
-
-    $("#sidebar-properties-body-name").html(notesettings['title']);
+    $("#sidebar-properties-header-notetype").html(notesettings['note_type']);
     $("#sidebar-properties-body-lastmodify").html(convertDate(notesettings['lastmodify']));
     $("#sidebar-properties-body-lastaccess").html(convertDate(notesettings['lastaccess']));
 
@@ -541,9 +588,10 @@ function updateEditorShow(){
 }
 
 function updateStatusBar(color, text){
-    document.getElementById("sidebar-status-icon").style.color = color;
-    document.getElementById("sidebar-status-text").innerHTML = text;
+    document.getElementById("status-icon").style.color = color;
+    document.getElementById("status-text").innerHTML = text;
 }
+
 
 function showContextMenu(item, event, context_type){
     var e = event || window.event;
@@ -553,7 +601,7 @@ function showContextMenu(item, event, context_type){
         noteContextID = 0;
     }
     if(notebook_id){
-        $('.notelist-item-notebook-title[title="'+notebook_id+'"]').removeClass("notebook-contextmenu-show");
+        $('.notelist-item-notebook-title[data-note-id="'+notebook_id+'"]').removeClass("notebook-contextmenu-show");
         notebook_id = 0;
     }
 
@@ -564,19 +612,34 @@ function showContextMenu(item, event, context_type){
     notebook_context.hide();
 
     if(context_type == 'notebook'){
-        notebook_context.show(150);
         $("#contextmenu-2").css({
             "top" : e.clientY+'px',
-            "left" : e.clientX+'px'
+            "left" : e.clientX+'px',
+            'display': 'block'
         });
-        notebook_id = $(item).attr("title");
+        var content_height = $('#content').height();
+        var menu_height = $("#contextmenu-2").height();
+        if((e.clientY + menu_height) > content_height ){
+            $("#contextmenu-2").css({
+                "top": (e.clientY - menu_height) + 'px'
+            });
+        }
+
+        notebook_id = $(item).attr("data-note-id");
         $(item).addClass("notebook-contextmenu-show");
     } else {
-        note_context.show(150);
         $("#contextmenu-1").css({
             "top" : e.clientY+'px',
-            "left" : e.clientX+'px'
+            "left" : e.clientX+'px',
+            'display': 'block'
         });
+        var content_height = $('#content').height();
+        var menu_height = $("#contextmenu-1").height();
+        if((e.clientY + menu_height) > content_height ){
+            $("#contextmenu-1").css({
+                "top": (e.clientY - menu_height) + 'px'
+            });
+        }
         noteContextID = parseInt($(item).attr("id").substring(14));
         $(item).addClass("notelist-item-contextmenu-show");
     }
@@ -591,6 +654,9 @@ function noteContextClick(operation, item){
             break;
         case "rename":
             renameNote(noteContextID, item);
+            break;
+        case "edit":
+            editNode(noteContextID, item);
             break;
         case "clone":
             cloneNote(noteContextID, item);
@@ -641,21 +707,47 @@ function renameNotebook(id,item){
     notebook_id = newname;
 }
 
+
+function loadNotebook(id){
+    updateStatusBar("#f1c40f", "Loading note...");
+    NOTEID = id;
+    $.post("include/note.php",{
+        action:"getNote",
+        id:id
+    },
+    function(data,status){
+        // alert("Status: " + status + data );
+        updateStatusBar("#0f2", "Note loaded");
+        simplemde.value(data);
+        $('#source').val(data);
+        updateEditorShow();
+
+        NoteLoding=false;
+        edit_mode = true;
+        doLayout();
+        simplemde.codemirror.refresh();
+    });
+}
 function noteBookContextClick(operation, item){
     switch(operation){
+        case "edit_template":
+            loadNotebook(notebook_id);
+            break;
         case "rename_notebook":
-            renameNotebook(notebook_id,item);
+            renameNote(notebook_id,item);
             break;
         case "delete_notebook":
-            console.log(item);
+            if(confirm("Delete this notebook? All subnotes will also be deleted. Are you sure?")){
+                delNotebook(notebook_id, item);
+            }
             break;
         case "notebook_properties":
-            console.log(item);
+            getNoteSettings(notebook_id, item);
             break;
     }
     $("#contextmenu-2").hide(150);
     if(notebook_id){
-        $('.notelist-item-notebook-title[title="'+notebook_id+'"]').removeClass("notebook-contextmenu-show");
+        $('.notelist-item-notebook-title[data-note-id="'+notebook_id+'"]').removeClass("notebook-contextmenu-show");
         notebook_id = 0;
     }
 }
@@ -688,7 +780,7 @@ $('body').on('click','[title="New Notebook"]',newNotebook);
     doLayout();
     updateStatusBar("#bdc3c7", "Ready");
 
-    $("#btn-newnote").click(function(){
+    $("#btn-newnote").on('click',function(){
         $.post("include/note.php",{
             action:"newNote",
             title:$("#input-newnote").val()
@@ -701,7 +793,7 @@ $('body').on('click','[title="New Notebook"]',newNotebook);
 
     $("#btn-newnotebook").on('click',newNotebook);
 
-    $("#btn-subnote").click(function(){
+    $("#btn-subnote").on('click',function(){
         $.post("include/note.php",{
             action:"newSubnote",
             notebook:$("#input-subnote-book").val(),
@@ -740,9 +832,13 @@ $('body').on('click','[title="New Notebook"]',newNotebook);
         }
     };
 
-    var oBox = document.getElementById("editor"), oLeft = document.getElementById("editor-ace"), oRight = document.getElementById("editor-show"), oMove = document.getElementById("editor-move");
+    var oBox = document.getElementById("content"), 
+    oLeft = document.getElementById("sidebar"), 
+    oRight = document.getElementById("editor"), 
+    oMove = document.getElementById("editor-move");
+
     oMove.onmousedown = function(e){
-        var winw=window.innerWidth
+        var winw = window.innerWidth
             || document.documentElement.clientWidth
             || document.body.clientWidth;
         var disX = (e || event).clientX;
@@ -754,9 +850,15 @@ $('body').on('click','[title="New Notebook"]',newNotebook);
             iT < 100 && (iT = 100);
             iT > oBox.clientWidth - 100 && (iT = oBox.clientWidth - 100);
             oMove.style.left  = iT + "px";
-            oLeft.style.width = iT + "px";
+            oLeft.style.width = (iT - 48) + "px";
             oRight.style.width = oBox.clientWidth - iT - 5 + "px";
-            oRight.style.marginLeft = iT + 5 + "px";
+            oRight.style.left = iT + 5 + "px";
+
+            if(edit_mode){
+                document.getElementById("editor-ace").style.width =  (oBox.clientWidth - iT - 5) + "px";
+            } else {
+                document.getElementById("editor-show").style.width = (oBox.clientWidth - iT - 5) + "px";
+            }
             return false
         };
         document.onmouseup = function(){
@@ -782,14 +884,16 @@ $('body').on('click','[title="New Notebook"]',newNotebook);
 
     $(".CodeMirror-vscrollbar").attr("id","editor-ace-scrollbar");
 
-    $("#editor-ace-scrollbar").scroll(function(){
+    $("#editor-ace-scrollbar").on('scroll',function(){
         var t = $(this)[0].scrollTop;
         document.getElementById("editor-show").scrollTop=t * (document.getElementById("editor-show").scrollHeight-document.getElementById("editor-show").offsetHeight) / (document.getElementById("editor-ace-scrollbar").scrollHeight-document.getElementById("editor-ace-scrollbar").offsetHeight);
     });
-
-    $(document).keydown(function(e){
+    var timerId;
+    
+    $(document).on('keydown',function(e){
+        clearTimeout(timerId);
         if( e.ctrlKey && e.which == 83 ){
-            saveNote();
+            timerId =  setTimeout(() => { saveNote(); }, 5000);
             return false;
         }
     });

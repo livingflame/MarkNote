@@ -36,11 +36,6 @@ if(!hasLogin()){
       .remark-slide-content{
           font-size: 28px;
       }
-      blockquote::before {
-   content: open-quote;
-   margin-right: 5px;
-   font-size: 1.2em;
-}
 
 blockquote {
   border-left: 0.3em solid #ccc;
@@ -49,16 +44,18 @@ blockquote {
   quotes: "\201C""\201D""\2018""\2019";
 }
 
-blockquote::after {
-  content: close-quote;
-  margin-left: 5px;
-  font-size: 1.2em;
+blockquote p:first-child{
+  margin-top: 0;
+}
+blockquote p:last-child{
+  margin-bottom: 0;
 }
     </style>
   </head>
   <body>
     <textarea id="source"><?php if(hasLogin() && isset($_GET['note'])){
-        echo getNote($_GET['note']);
+      $note = getNote($_GET['note']);
+        echo $note['content'];
     } ?></textarea>
     <script src="assets/remark.js">
     </script>
