@@ -193,25 +193,33 @@
 				$enable_rewrite=false;
 			}
 
-			$sql->query('CREATE TABLE note_content (
-						ID int NOT NULL AUTO_INCREMENT,
-						PRIMARY KEY(ID),
-						user		tinytext,
-						settings	text,
-						content		longtext,
-						comments	longtext
-					) DEFAULT CHARSET=utf8');
+			$sql->query("CREATE TABLE `note_content` (
+				`ID` int(11) NOT NULL,
+				`user` tinytext DEFAULT NULL,
+				`settings` longtext DEFAULT NULL,
+				`note_type` text NOT NULL DEFAULT 'note',
+				`title` text NOT NULL,
+				`content` longtext DEFAULT NULL,
+				`fields` longtext DEFAULT NULL,
+				`parent_id` int(11) NOT NULL DEFAULT 0,
+				`list_index` int(11) NOT NULL DEFAULT 0,
+				`created` int(20) NOT NULL,
+				`lastmodified` int(20) NOT NULL,
+				`lastaccessed` int(20) NOT NULL
+			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+			$sql->query("ALTER TABLE `note_content`
+			ADD PRIMARY KEY (`ID`);");
 
-			$sql->query('CREATE TABLE note_users (
-						UID int NOT NULL AUTO_INCREMENT,
-						PRIMARY KEY(UID),
-						username	tinytext,
-						passwd		tinytext,
-						email		tinytext,
-						settings	text,
-						notebooks	longtext
-					) DEFAULT CHARSET=utf8');
-
+			$sql->query("  CREATE TABLE `note_users` (
+				`UID` int(11) NOT NULL,
+				`username` tinytext DEFAULT NULL,
+				`passwd` tinytext DEFAULT NULL,
+				`email` tinytext DEFAULT NULL,
+				`settings` text DEFAULT NULL,
+				`fields` longtext DEFAULT NULL
+			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+			$sql->query("ALTER TABLE `note_users`
+			ADD PRIMARY KEY (`UID`);");
 
 			$to_config_file=
 '<?php
@@ -221,7 +229,6 @@
 	$sql_name="'.$sql_name.'";
 	$enable_rewrite='.$enable_rewrite.';
 ?>';
-
 
 			$result = file_put_contents('../config.php', $to_config_file);
 			if(!$result){
@@ -241,8 +248,6 @@
 
 		}
 	}
-
-
 ?>
 
 </div></body>
