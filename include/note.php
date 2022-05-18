@@ -40,7 +40,8 @@
 					$content = str_replace("&#61;", "=",$content);
 					$content = str_replace("&#63;", "?",$content);
 					$content = str_replace("&#92;", "\\",$content);
-					echo $content;
+					$note['content'] =  $content;
+					echo json_encode($note);
 				}
 			}
 

@@ -35,7 +35,7 @@
 		$sql_output = $sql->query("SELECT passwd FROM note_users
 			WHERE username = '$username'");
 		if( $sql_output->num_rows > 0 ){
-			$truePasswd = $sql_output->fetch_array()['passwd'];
+			$truePasswd = $sql_output->fetch_array(MYSQLI_ASSOC)['passwd'];
 		}else{
 			return false;
 		}
@@ -43,7 +43,7 @@
 		if( $truePasswd == $_COOKIE['MarkNotePasswd'] ){
 			$sql_output = $sql->query("SELECT username FROM note_users
 				WHERE username = '$username'");
-			$username = $sql_output->fetch_array()['username'];
+			$username = $sql_output->fetch_array(MYSQLI_ASSOC)['username'];
 			$USERNAME = $username;
 			return true;
 		}else{
@@ -72,7 +72,7 @@
 		$sql_output = $sql->query("SELECT passwd FROM note_users
 			WHERE username = '$username'");
 		if( $sql_output->num_rows > 0 ){
-			$truePasswd = $sql_output->fetch_array()['passwd'];
+			$truePasswd = $sql_output->fetch_array(MYSQLI_ASSOC)['passwd'];
 		}else{
 			echo "no this user";
 			return -1;
@@ -80,7 +80,7 @@
 		if(md5('ffffffffff'.$passwd.'蛤蛤蛤') == $truePasswd){
 			$sql_output = $sql->query("SELECT username FROM note_users
 				WHERE username = '$username'");
-			$username = $sql_output->fetch_array()['username'];
+			$username = $sql_output->fetch_array(MYSQLI_ASSOC)['username'];
 			setcookie('MarkNoteUser', $username, time()+604800);
 			setcookie('MarkNotePasswd', md5('ffffffffff'.$passwd.'蛤蛤蛤'), time()+604800);
 			$USERNAME = $username;
@@ -98,7 +98,7 @@
 
 		$sql_output = $sql->query("SELECT email FROM note_users
 			WHERE username = '$username'");
-		return $sql_output->fetch_array()['email'];
+		return $sql_output->fetch_array(MYSQLI_ASSOC)['email'];
 	}
 
 	function logout(){
@@ -111,7 +111,7 @@
 		global $sql;
 		$sql_output = $sql->query("SELECT * FROM note_content WHERE user = '$user' AND ID = '$id' AND note_type = 'notebook'");
 
-		return ($sql_output) ? $sql_output->fetch_array() : $sql_output;
+		return ($sql_output) ? $sql_output->fetch_array(MYSQLI_ASSOC) : $sql_output;
 	}
 	function addNotebookToUser($username, $notebook){
 		global $sql;
@@ -120,7 +120,7 @@
 
 		$sql_output = $sql->query("SELECT title FROM note_content
 			WHERE user = '$username' AND title = '$notebook' AND note_type = 'notebook'");
-		if($sql_output->fetch_array()){
+		if($sql_output->fetch_array(MYSQLI_ASSOC)){
 			echo 'notebook name already exist';
 			return -1;
 		}else{
@@ -140,7 +140,7 @@
 		$notebook_details = getNotebookByID($id,$username);
 		if($notebook_details){
 			$sql_output = $sql->query("SELECT COUNT(*) as child_count FROM note_content WHERE parent_id = '$notebook' ");
-			$index = $sql_output->fetch_array()['child_count'];
+			$index = $sql_output->fetch_array(MYSQLI_ASSOC)['child_count'];
 			$sql->query("UPDATE note_content SET parent_id = '$notebook', list_index = $index
 				WHERE user = '$username'AND ID = '$id'");
 		}
@@ -169,7 +169,7 @@
 			WHERE user = '$username' ORDER BY list_index ASC");
 
 		if($sql_output){
-			while($row = $sql_output->fetch_array())
+			while($row = $sql_output->fetch_array(MYSQLI_ASSOC))
 			{
 				$rows[] = $row;
 			}
@@ -221,7 +221,7 @@
 		$sql_output = $sql->query("SELECT * FROM note_content
 			WHERE ID = '$id'");
 		if( $sql_output->num_rows > 0 ){
-			$content = $sql_output->fetch_array();
+			$content = $sql_output->fetch_array(MYSQLI_ASSOC);
 			if($update_access){
 				updateNoteAccessDate($id);
 			}

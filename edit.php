@@ -25,7 +25,7 @@
 				<div class="notelist-item-single" style="height: 1px;"></div>
 				<div class="notelist-folder" data-note-id="<?php echo $value['ID'];?>"<?php echo $note_opened_height; ?>>
 					<i class="fa fa-angle-down fa-lg i-notelist-folder-arrow" <?php echo $note_opened_transform; ?> aria-hidden="true"></i>
-					<div class="notelist-item <?php echo $note_opened_class; ?> notebook-toggleNotebook notelist-item-notebook-title" title="<?php echo $value['title']; ?>"  data-note-id="<?php echo $value['ID'];?>">
+					<div id="notelist-item-<?php echo $value['ID'];?>" class="notelist-item <?php echo $note_opened_class; ?> notebook-toggleNotebook notelist-item-notebook-title" title="<?php echo $value['title']; ?>"  data-note-id="<?php echo $value['ID'];?>">
 						<i class="fa fa-book" aria-hidden="true"></i>
 						<span class="notebook_name"><?php echo $value['title']; ?></span>
 					</div>
@@ -58,7 +58,7 @@
 					<div class="notelist-item-single" style="height: 1px;"></div>
 					<div class="notelist-folder" data-note-id="<?php echo $value['ID'];?>"<?php echo $note_opened_height; ?>>
 						<i class="fa fa-angle-down fa-lg i-notelist-folder-arrow" <?php echo $note_opened_transform; ?> aria-hidden="true"></i>
-						<div class="notelist-item <?php echo $note_opened_class; ?> notebook-toggleNotebook notelist-item-notebook-title" title="<?php echo $value['title']; ?>"  data-note-id="<?php echo $value['ID'];?>">
+						<div id="notelist-item-<?php echo $value['ID'];?>"  class="notelist-item <?php echo $note_opened_class; ?> notebook-toggleNotebook notelist-item-notebook-title" title="<?php echo $value['title']; ?>"  data-note-id="<?php echo $value['ID'];?>">
 							<i class="fa fa-book" aria-hidden="true"></i>
 							<span class="notebook_name"><?php echo $value['title']; ?></span>
 						</div>

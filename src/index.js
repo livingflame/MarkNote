@@ -1,9 +1,14 @@
+import './common.css';
 import '../node_modules/simplemde/dist/simplemde.min.css';
+
 import './edit.css';
 
 import $ from 'jquery';
 import SimpleMDE from 'simplemde';
 import Sortable from 'sortablejs';
+import EasyJsonForm from './easyjsonform/easyjsonform-module';
+
+
 
 import { marked } from 'marked';
 
@@ -24,28 +29,18 @@ marked.setOptions({
     xhtml: false
   });
     
-    var edit_mode = false;
+    var mode = 'read'; //edit or set
     var NOTEID=0;
     var NoteAutosaving = false;
     var NoteAutosaveWaiting = false;
     var noteContextID = 0;
     var notebook_id = 0;
     
-
-
-
     var simplemde = new SimpleMDE({ 
         element: document.getElementById("source"),
-        previewRender: function(plainText, preview) { // Async method
-            setTimeout(function(){
-                preview.innerHTML = marked.parse(plainText);
-            }, 250);
-    
-            return "Loading...";
-        },
         forceSync: true,
         autofocus: true,
-        hideIcons: ["preview"],
+        hideIcons: ["preview","side-by-side","guide"],
         status: false,
         showIcons: ['strikethrough','clean-block','horizontal-rule',"code", "table"],
     });
@@ -81,23 +76,25 @@ function doLayout(){
     var toolbar_width = $('#toolbar').outerWidth();
     var sidebar_width = $('#sidebar').outerWidth();
     var emove_width = $('#editor-move').outerWidth();
-
+    simplemde.codemirror.setSize(null, winh-105);
 
     $("#editor").width(winw-(toolbar_width + sidebar_width + emove_width));
     
     
-    simplemde.codemirror.setSize(null, winh-110);
+    
     document.getElementById("editor-move").style.left  = (toolbar_width + sidebar_width) + "px";
     document.getElementById("editor").style.left  = (toolbar_width + sidebar_width + emove_width) + "px";
 
-    if(edit_mode){
-        document.getElementById("editor-ace").style.width =  (winw-(toolbar_width + sidebar_width + emove_width)) + "px";
+    if(mode === 'edit'){
+        document.getElementById("editor-ace").style.width =  (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
         document.getElementById("editor-ace").style.display = "block";
-        document.getElementById("editor-show").style.display = "none";
+        document.getElementById("editor-show").style.width = (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
+        document.getElementById("editor-show").style.marginLeft = (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
     } else {
         document.getElementById("editor-show").style.display = "block";
         document.getElementById("editor-ace").style.display = "none";
         document.getElementById("editor-show").style.width = (winw-(toolbar_width + sidebar_width + emove_width)) + "px";
+        document.getElementById("editor-show").style.marginLeft = "0";
     }
 
 }
@@ -108,8 +105,8 @@ window.onresize = function () {
 
 $('body').on('click','[title="Edit Mode"]',function(e){
     e.preventDefault();
-    edit_mode = !edit_mode;
-    if(edit_mode){
+    mode = (mode === 'edit') ? 'read' : 'edit';
+    if(mode === 'edit'){
         loadNote(NOTEID);
     }
     doLayout();
@@ -293,7 +290,6 @@ $('body').on('click','.notelist-item-subnote2',function(e){
 function loadNoteActions(id){
     if(NOTEID){
         if(NOTEID == id){
-            updateStatusBar("#0f2", "Note loaded");
             return 0;
         }
         $("#notelist-item-"+NOTEID).removeClass("notelist-item-selected2");
@@ -311,6 +307,13 @@ function loadNoteActions(id){
 }
 
 function loadNote(id){
+    getNote(id,function(){
+        updateEditorShow();
+    })
+}
+
+function getNote(id,callable){
+    var call = callable || $.noop;
     updateStatusBar("#f1c40f", "Loading note...");
     loadNoteActions(id);
     NoteLoding=true;
@@ -319,37 +322,16 @@ function loadNote(id){
         id:id
     },
     function(data,status){
-        // alert("Status: " + status + data );
-        simplemde.value(data);
-        $('#source').val(data);
-        updateEditorShow();
-        updateStatusBar("#0f2", "Note loaded");
-
+        var obj = JSON.parse(data);
+        simplemde.value(obj.content);
+        $('#source').val(obj.content);
         NoteLoding=false;
+        updateStatusBar("#0f2", "Note loaded");
+        call.call(obj,status);
     });
 }
 
 
-function editNode(id){
-    updateStatusBar("#f1c40f", "Loading note...");
-    loadNoteActions(id);
-    NoteLoding=true;
-    $.post("include/note.php",{
-        action:"getNote",
-        id:id
-    },
-    function(data,status){
-        // alert("Status: " + status + data );
-        simplemde.value(data);
-        $('#source').val(data);
-        updateEditorShow();
-        updateStatusBar("#0f2", "Note loaded");
-        edit_mode = true;
-        doLayout();
-
-        NoteLoding=false;
-    });
-}
 $('body').on('click','.notelist-load-note',function(e){
     e.preventDefault();
     var id = $(this).attr('data-note-id');
@@ -467,7 +449,7 @@ function delNote(id){
             simplemde.value(data);
             updateEditorShow();
             simplemde.codemirror.refresh();
-            edit_mode = false;
+            mode = 'read';
             doLayout();
             updateStatusBar("#0f2", "Note deleted");
         } else {
@@ -656,7 +638,8 @@ function noteContextClick(operation, item){
             renameNote(noteContextID, item);
             break;
         case "edit":
-            editNode(noteContextID, item);
+            mode = 'edit';
+            loadNote(noteContextID, item);
             break;
         case "clone":
             cloneNote(noteContextID, item);
@@ -707,26 +690,41 @@ function renameNotebook(id,item){
     notebook_id = newname;
 }
 
+function settingsForm(structure){
+    var ejf = new EasyJsonForm('settings-form',structure);
+    console.log(structure);
+    console.log(ejf);
+    var myContainer = document.getElementById('editor-show');
+    myContainer.appendChild(ejf.formGet());
+}
+
+// Save method when user click on "Save form" button
+function saveForm() {
+    // structure is a javascript object. It can be used to recreate the form
+    // using a EasyJsonForm object or can be saved in your database. For that,
+    // the object needs to be converted as a json string using JSON.stringify
+
+    let structure = ejf.structureExport();
+    let jsonStructure = JSON.stringify(structure);
+    
+    // Replace console.log by your API call to save jsonStructure into your db
+    console.log(jsonStructure);
+    
+    // If you want to update an input field (usually a hidden field) with the
+    // JSON representation of this form, you must provide a callback function.
+    // This is explained when we present the options (4th) argument.
+}
+
 
 function loadNotebook(id){
-    updateStatusBar("#f1c40f", "Loading note...");
     NOTEID = id;
-    $.post("include/note.php",{
-        action:"getNote",
-        id:id
-    },
-    function(data,status){
-        // alert("Status: " + status + data );
-        updateStatusBar("#0f2", "Note loaded");
-        simplemde.value(data);
-        $('#source').val(data);
+    getNote(id,function(){
+        mode = 'set';
         updateEditorShow();
-
-        NoteLoding=false;
-        edit_mode = true;
+        settingsForm(JSON.parse(this.fields));
         doLayout();
         simplemde.codemirror.refresh();
-    });
+    })
 }
 function noteBookContextClick(operation, item){
     switch(operation){
@@ -854,11 +852,7 @@ $('body').on('click','[title="New Notebook"]',newNotebook);
             oRight.style.width = oBox.clientWidth - iT - 5 + "px";
             oRight.style.left = iT + 5 + "px";
 
-            if(edit_mode){
-                document.getElementById("editor-ace").style.width =  (oBox.clientWidth - iT - 5) + "px";
-            } else {
-                document.getElementById("editor-show").style.width = (oBox.clientWidth - iT - 5) + "px";
-            }
+            doLayout();
             return false
         };
         document.onmouseup = function(){
