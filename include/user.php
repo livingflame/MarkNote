@@ -146,16 +146,18 @@
 		}
 
 	}
-	function buildTree(array $elements, $parentId = 0) {
+	function buildTree(array &$elements, $parentId = 0, $index = 0) {
 		$branch = array();
 	
-		foreach ($elements as $element) {
-			if ($element['parent_id'] == $parentId) {
-				$children = buildTree($elements, $element['ID']);
+		foreach ($elements as $key => $element) {
+			$current_element = $element;
+			unset($elements[$key]);
+			if ($current_element['parent_id'] == $parentId) {
+				$children = buildTree($elements, $current_element['ID'], $key);
 				if ($children) {
-					$element['children'] = $children;
+					$current_element['children'] = $children;
 				}
-				$branch[] = $element;
+				$branch[] = $current_element;
 			}
 		}
 	

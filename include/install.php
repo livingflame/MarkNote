@@ -1,12 +1,9 @@
-<?php #MarkNote安装向导 ?>
-
-
 <!DOCTYPE html>
 <html>
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>MarkNote › 安装</title>
+	<title>MarkNote › Install</title>
 	<style type="text/css">
 		body{
 			font-family: "Noto Sans CJK SC","Microsoft YaHei UI","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;
@@ -83,8 +80,8 @@
 
 	if( file_exists('../config.php') ){
 		?>
-		<h2 class="underline" style="font-weight:100;margin:0;" >MarkNote安装向导</h2>
-		<p>程序已安装过，若需要调整设置，请直接编辑程序目录下的config.php或删除该文件以重新安装。</p>
+		<h2 class="underline" style="font-weight:100;margin:0;" >MarkNote Installation Wizard</h2>
+		<p>The program has already been installed, if you need to adjust the settings, please edit the config.php in the program directory directly or delete the file to reinstall.</p>
 
 		<?php
 		exit();
@@ -95,13 +92,13 @@
 		//Welcome page
 		?>
 
-		<h2 class="underline" style="font-weight:100;margin:0;" >MarkNote安装向导</h2>
-		<p>欢迎使用MarkNote，本向导会在程序目录下生成config.php，您也可以根据config-sample.php来手动创建。</p>
-		<p>MarkNote需要一个可用的MySQL 5.x数据库，并建议启用mod_rewrite这一Apache模块。</p>
+		<h2 class="underline" style="font-weight:100;margin:0;" >MarkNote Installation Wizard</h2>
+		<p>Welcome to MarkNote, this wizard will generate config.php in the program directory, you can also manually create it according to config-sample.php.</p>
+		<p>MarkNote requires a working MySQL 5.x database and recommends enabling the mod_rewrite Apache module.</p>
 
-		<p>请点击下一步以继续</p>
+		<p>Please click next to continue</p>
 
-		<a class="btn" style="float:right;" href="install.php?step=2">下一步 ></a>
+		<a class="btn" style="float:right;" href="install.php?step=2">Next ></a>
 		<div style="clear:both;"></div>
 
 
@@ -113,41 +110,41 @@
 		if($_GET['step']=='2'){
 			?>
 
-			<h2 class="underline" style="font-weight:100;margin:0;" >MarkNote安装向导</h2>
+			<h2 class="underline" style="font-weight:100;margin:0;" >MarkNote Installation Wizard</h2>
 			<form id="the-form" action="./install.php?step=3" method="post">
-				<h3 class="subtitle">数据库信息</h3>
+				<h3 class="subtitle">Database Information</h3>
 				<table style="margin-left:50px;">
 					<tr>
-						<td style="width:150px;">数据库主机</td>
+						<td style="width:150px;">Database Host</td>
 						<td><input type="text" name="sql-host" value="localhost"></td>
 					</tr>
 
 					<tr>
-						<td>数据库用户</td>
+						<td>Database User</td>
 						<td><input type="text" name="sql-user" value="root"></td>
 					</tr>
 
 					<tr>
-						<td>密码</td>
+						<td>password</td>
 						<td><input type="text" name="sql-passwd" value=""></td>
 					</tr>
 
 					<tr>
-						<td>数据库名</td>
+						<td>Database name</td>
 						<td><input type="text" name="sql-name" value="marknote"></td>
 					</tr>
 				</table>
 
 
-				<h3 class="subtitle">其他选项</h3>
+				<h3 class="subtitle">Other options</h3>
 				<table style="margin-left:50px;">
 					<tr>
-						<td style="width:150px;">启用伪静态</td>
+						<td style="width:150px;">Enable rewrite</td>
 						<td><input type="checkbox" name="enable-rewrite" checked="checked"></td>
 					</tr>
 				</table>
 
-				<a class="btn" style="float:right;cursor:pointer" onclick="document.getElementById('the-form').submit();">下一步 ></a>
+				<a class="btn" style="float:right;cursor:pointer" onclick="document.getElementById('the-form').submit();">Next ></a>
 				<div style="clear:both;"></div>
 			</form>
 
@@ -180,9 +177,9 @@
 			$sql = new mysqli($sql_host, $sql_user, $sql_passwd, $sql_name);
 			if( $sql->connect_errno ){
 				?>
-				<p>无法连接数据库，请检查你的设置。</p>
+				<p>Unable to connect to database, please check your settings.</p>
 				<p>Error: (<?php echo $sql->connect_errno.') '.$sql->connect_error; ?> </p>
-				<a class="btn" style="cursor:pointer" onclick="history.go(-1)">< 返回</a>
+				<a class="btn" style="cursor:pointer" onclick="history.go(-1)">< back</a>
 				<?php
 				exit();
 			}
@@ -193,33 +190,32 @@
 				$enable_rewrite=false;
 			}
 
-			$sql->query("CREATE TABLE `note_content` (
-				`ID` int(11) NOT NULL,
-				`user` tinytext DEFAULT NULL,
-				`settings` longtext DEFAULT NULL,
-				`note_type` text NOT NULL DEFAULT 'note',
-				`title` text NOT NULL,
-				`content` longtext DEFAULT NULL,
-				`fields` longtext DEFAULT NULL,
-				`parent_id` int(11) NOT NULL DEFAULT 0,
-				`list_index` int(11) NOT NULL DEFAULT 0,
-				`created` int(20) NOT NULL,
-				`lastmodified` int(20) NOT NULL,
-				`lastaccessed` int(20) NOT NULL
-			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-			$sql->query("ALTER TABLE `note_content`
-			ADD PRIMARY KEY (`ID`);");
+			$sql->query("CREATE TABLE IF NOT EXISTS `note_content` (
+			  `ID` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+			  `user` tinytext DEFAULT NULL,
+			  `settings` longtext DEFAULT NULL,
+			  `note_type` text NOT NULL DEFAULT 'note',
+			  `title` text NOT NULL,
+			  `content` longtext DEFAULT NULL,
+			  `fields` longtext DEFAULT NULL,
+			  `parent_id` int(11) NOT NULL DEFAULT 0,
+			  `list_index` int(11) NOT NULL DEFAULT 0,
+			  `created` int(20) NOT NULL,
+			  `lastmodified` int(20) NOT NULL,
+			  `lastaccessed` int(20) NOT NULL,
+			  PRIMARY KEY (`ID`)
+			) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8");
 
-			$sql->query("  CREATE TABLE `note_users` (
-				`UID` int(11) NOT NULL,
-				`username` tinytext DEFAULT NULL,
-				`passwd` tinytext DEFAULT NULL,
-				`email` tinytext DEFAULT NULL,
-				`settings` text DEFAULT NULL,
-				`fields` longtext DEFAULT NULL
-			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-			$sql->query("ALTER TABLE `note_users`
-			ADD PRIMARY KEY (`UID`);");
+			$sql->query("CREATE TABLE IF NOT EXISTS `note_users` (
+			  `UID` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+			  `username` tinytext DEFAULT NULL,
+			  `passwd` tinytext DEFAULT NULL,
+			  `email` tinytext DEFAULT NULL,
+			  `settings` text DEFAULT NULL,
+			  `fields` longtext DEFAULT NULL,
+			  PRIMARY KEY (`UID`)
+			) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;");
+
 
 			$to_config_file=
 '<?php
@@ -233,16 +229,16 @@
 			$result = file_put_contents('../config.php', $to_config_file);
 			if(!$result){
 				?>
-				<p>无法写入配置文件，请检查你的设置。</p>
+				<p>Unable to write configuration file, please check your settings.</p>
 				<p>Error: (<?php echo $sql->connect_errno.') '.$sql->connect_error; ?> </p>
 				<a class="btn" style="cursor:pointer" onclick="history.go(-1)">< 返回</a>
 				<?php
 				exit();
 			}
 			?>
-				<h2 class="underline" style="font-weight:100;margin:0;" >MarkNote安装向导</h2>
-				<p>安装已完成</p>
-				<a class="btn" style="float:right;cursor:pointer" href="../">完成</a>
+				<h2 class="underline" style="font-weight:100;margin:0;" >MarkNote Installation Wizard</h2>
+				<p>Installation is complete</p>
+				<a class="btn" style="float:right;cursor:pointer" href="../">Finish</a>
 				<div style="clear:both;"></div>
 			<?php
 
