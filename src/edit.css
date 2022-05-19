@@ -170,7 +170,7 @@
 	overflow: hidden;
 }
 
-#editor-ace, #editor-move{
+#editor-ace, #editor-move, #editor-form{
 	display: inline-block;
 	position: absolute;
 	height: 100%;

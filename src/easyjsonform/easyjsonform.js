@@ -324,15 +324,16 @@ class EasyJsonFormFieldMultipleChoice extends EasyJsonFormField {
                 result += `</ul></td></tr>`;
                 return result;
             case 'simple': 
-                return this.value.map((x, i) => {
-                    let itemKey = EasyJsonForm.dictionary['common.export.compound.field']
-                        .replace('{{1st-level-label}}', this.label)
-                        .replace('{{2nd-lebel-label}}', this.properties.items[i]);
-                    let itemValue = parseInt(x) ? 
-                        EasyJsonForm.dictionary['common.value.yes']:
-                        EasyJsonForm.dictionary['common.value.no'];
-                    return {key: itemKey, value: itemValue};
-                });
+            return {key: this.label, value: this.value};
+            return this.value.map((x, i) => {
+                let itemKey = EasyJsonForm.dictionary['common.export.compound.field']
+                    .replace('{{1st-level-label}}', this.label)
+                    .replace('{{2nd-lebel-label}}', this.properties.items[i]);
+                let itemValue = parseInt(x) ? 
+                    EasyJsonForm.dictionary['common.value.yes']:
+                    EasyJsonForm.dictionary['common.value.no'];
+                return {key: itemKey, value: itemValue};
+            });
             default:
                 return super.valueExport(ejf, mode);
         }

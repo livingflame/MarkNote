@@ -8,10 +8,7 @@ import SimpleMDE from 'simplemde';
 import Sortable from 'sortablejs';
 import EasyJsonForm from './easyjsonform/easyjsonform-module';
 
-
-
 import { marked } from 'marked';
-
 marked.setOptions({
     renderer: new marked.Renderer(),
     highlight: function(code, lang) {
@@ -30,6 +27,7 @@ marked.setOptions({
   });
     
     var mode = 'read'; //edit or set
+    var prev_mode;
     var NOTEID=0;
     var NoteAutosaving = false;
     var NoteAutosaveWaiting = false;
@@ -85,34 +83,30 @@ function doLayout(){
     document.getElementById("editor-move").style.left  = (toolbar_width + sidebar_width) + "px";
     document.getElementById("editor").style.left  = (toolbar_width + sidebar_width + emove_width) + "px";
 
-    if(mode === 'edit'){
-        document.getElementById("editor-ace").style.width =  (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
-        document.getElementById("editor-ace").style.display = "block";
-        document.getElementById("editor-show").style.width = (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
-        document.getElementById("editor-show").style.marginLeft = (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
-    } else {
-        document.getElementById("editor-show").style.display = "block";
-        document.getElementById("editor-ace").style.display = "none";
-        document.getElementById("editor-show").style.width = (winw-(toolbar_width + sidebar_width + emove_width)) + "px";
-        document.getElementById("editor-show").style.marginLeft = "0";
-    }
+    switch(mode) {
+        case 'set':
+        case 'edit':
+            document.getElementById("editor-ace").style.width =  (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
+            document.getElementById("editor-ace").style.display = "block";
+            document.getElementById("editor-form").style.display = "none";
+            document.getElementById("editor-show").style.width = (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
+            document.getElementById("editor-show").style.marginLeft = (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
+          break;
+        case 'form':
+            document.getElementById("editor-ace").style.display = "none";
+            document.getElementById("editor-form").style.width =  (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
+            document.getElementById("editor-form").style.display = "block";
+            document.getElementById("editor-show").style.width = (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
+            document.getElementById("editor-show").style.marginLeft = (winw-(toolbar_width + sidebar_width + emove_width))/2 + "px";
+          break;
+        default:
+            document.getElementById("editor-form").style.display = "none";
+            document.getElementById("editor-ace").style.display = "none";
+            document.getElementById("editor-show").style.width = (winw-(toolbar_width + sidebar_width + emove_width)) + "px";
+            document.getElementById("editor-show").style.marginLeft = "0";
+      }
 
 }
-
-window.onresize = function () {
-    doLayout();
-}
-
-$('body').on('click','[title="Edit Mode"]',function(e){
-    e.preventDefault();
-    mode = (mode === 'edit') ? 'read' : 'edit';
-    if(mode === 'edit'){
-        loadNote(NOTEID);
-    }
-    doLayout();
-
-    simplemde.codemirror.refresh();
-});
 
 function loadNotelist(){
     $.post("edit.php",{
@@ -244,8 +238,6 @@ function newNote(){
     });
 }
 
-$('body').on('click','.notelist-newNote',newNote);
-
 
 function newNoteBelow(){
     var newname = prompt();
@@ -263,9 +255,6 @@ function newNoteBelow(){
     });
 }
 
-
-$('[title="New Note"]').on('click',newNoteBelow);
-
 function newSubnote(notebook){
     var newname = prompt();
     if(newname == null){
@@ -281,12 +270,6 @@ function newSubnote(notebook){
         loadNotelist();
     });
 }
-$('body').on('click','.notelist-item-subnote2',function(e){
-    e.preventDefault();
-    var notebook = $(this).attr('data-note');
-    newSubnote(notebook)
-});
-
 function loadNoteActions(id){
     if(NOTEID){
         if(NOTEID == id){
@@ -307,6 +290,7 @@ function loadNoteActions(id){
 }
 
 function loadNote(id){
+    mode = 'edit';
     getNote(id,function(){
         updateEditorShow();
     })
@@ -330,13 +314,6 @@ function getNote(id,callable){
         call.call(obj,status);
     });
 }
-
-
-$('body').on('click','.notelist-load-note',function(e){
-    e.preventDefault();
-    var id = $(this).attr('data-note-id');
-    loadNote(id);
-});
 
 function getNoteSettings(id){
     updateStatusBar("#f1c40f", "Loading properties...");
@@ -421,7 +398,6 @@ function saveNote(){
     }
 }
 
-$('[title="Save"]').on('click',saveNote);
 function cloneNote(id){
     updateStatusBar("#f1c40f", "Cloning...");
     $.post("include/note.php",{
@@ -434,7 +410,6 @@ function cloneNote(id){
         updateStatusBar("#0f2", "Note cloned");
     });
 }
-
 
 function delNote(id){
     $.post("include/note.php",{
@@ -511,10 +486,7 @@ function toggleNotebook(item){
     settings['notebook-opened'] = opened;
     updateNoteSettings(note_id,settings);
 }
-$('body').on('click','.notebook-toggleNotebook',function(e){
-    e.preventDefault();
-    toggleNotebook(this);
-});
+
 
 function showProperties(id, notesettings){
     var winh=window.innerHeight
@@ -553,7 +525,6 @@ function hideProperties(){
     $("#page-glass").fadeOut(200);
 
 }
-$('body').on('click','#page-glass',hideProperties);
 
 function showNotsaveLable(){
     if(NOTEID){
@@ -669,11 +640,6 @@ function noteContextClick(operation, item){
     }
 }
 
-$('body').on('click','.contextmenu-item',function(e){
-    e.preventDefault();
-    var operation = $(this).attr('data-operation');
-    noteContextClick(operation,this);
-});
 
 function renameNotebook(id,item){
     var title = $(item).attr('title');
@@ -691,30 +657,39 @@ function renameNotebook(id,item){
 }
 
 function settingsForm(structure){
-    var ejf = new EasyJsonForm('settings-form',structure);
-    console.log(structure);
-    console.log(ejf);
-    var myContainer = document.getElementById('editor-show');
-    myContainer.appendChild(ejf.formGet());
+    var ejf;
+    var ejfoptions = {
+        disabled: false,
+        fileHandler: {
+            // Returns a string with the name to be displayed
+            displayName: (value) => EasyJsonForm.dictionary['item.file.vaule.uploaded.file'],
+            // Returns a Promise (fetch can be used!) which will resolve as an object with keys 
+            // 'success' (boolean) and 'value' (string: value to be stored or error message)
+            upload: (file) => {
+                return new Promise((resolve, reject) => {
+                    console.log(file);
+                    setTimeout(()=>resolve({success: true, value: 'sampleFileName'}), 3000);
+                });
+            },
+            // Returns the url for the link to be displayed
+            url: (value) => 'https://google.com',
+        },
+        formContainer: 'form',
+        formAction: null,
+        formMethod: null,
+        onStructureChange: () => {
+            //
+        },
+        // 'onValueChange' can receive a callback function which is invoked whenever the user
+        // changes the values in a form
+        onValueChange: () => {
+            document.getElementById('editor-show').appendChild(ejf.formGet());
+        },
+    };
+
+    ejf = new EasyJsonForm('settings-form',structure,null,ejfoptions);
+    document.getElementById('editor-show').appendChild(ejf.formGet());
 }
-
-// Save method when user click on "Save form" button
-function saveForm() {
-    // structure is a javascript object. It can be used to recreate the form
-    // using a EasyJsonForm object or can be saved in your database. For that,
-    // the object needs to be converted as a json string using JSON.stringify
-
-    let structure = ejf.structureExport();
-    let jsonStructure = JSON.stringify(structure);
-    
-    // Replace console.log by your API call to save jsonStructure into your db
-    console.log(jsonStructure);
-    
-    // If you want to update an input field (usually a hidden field) with the
-    // JSON representation of this form, you must provide a callback function.
-    // This is explained when we present the options (4th) argument.
-}
-
 
 function loadNotebook(id){
     NOTEID = id;
@@ -726,6 +701,55 @@ function loadNotebook(id){
         simplemde.codemirror.refresh();
     })
 }
+
+function settingsFormBuilder(structure){
+    var ejf;
+    var ejfoptions = {
+        disabled: false,
+        fileHandler: {
+            // Returns a string with the name to be displayed
+            displayName: (value) => EasyJsonForm.dictionary['item.file.vaule.uploaded.file'],
+            // Returns a Promise (fetch can be used!) which will resolve as an object with keys 
+            // 'success' (boolean) and 'value' (string: value to be stored or error message)
+            upload: (file) => {
+                return new Promise((resolve, reject) => {
+                    console.log(file);
+                    setTimeout(()=>resolve({success: true, value: 'sampleFileName'}), 3000);
+                });
+            },
+            // Returns the url for the link to be displayed
+            url: (value) => 'https://google.com',
+        },
+        formContainer: 'form',
+        formAction: null,
+        formMethod: null,
+        onStructureChange: () => {
+            ejf.formUpdate();
+            document.getElementById('editor-form').appendChild(ejf.builderGet());
+            document.getElementById('editor-show').appendChild(ejf.formGet());
+        },
+        // 'onValueChange' can receive a callback function which is invoked whenever the user
+        // changes the values in a form
+        onValueChange: () => {
+            //test
+        },
+    };
+
+    ejf = new EasyJsonForm('settings-form',structure,null,ejfoptions);
+    document.getElementById('editor-form').appendChild(ejf.builderGet());
+    document.getElementById('editor-show').appendChild(ejf.formGet());
+}
+
+function loadNotebookFormbuilder(id){
+    NOTEID = id;
+    getNote(id,function(){
+        mode = 'form';
+        updateEditorShow();
+        settingsFormBuilder(JSON.parse(this.fields));
+        doLayout();
+    })
+}
+
 function noteBookContextClick(operation, item){
     switch(operation){
         case "edit_template":
@@ -733,6 +757,9 @@ function noteBookContextClick(operation, item){
             break;
         case "rename_notebook":
             renameNote(notebook_id,item);
+            break;
+        case "notebook_form_builder":
+            loadNotebookFormbuilder(notebook_id,item);
             break;
         case "delete_notebook":
             if(confirm("Delete this notebook? All subnotes will also be deleted. Are you sure?")){
@@ -750,11 +777,7 @@ function noteBookContextClick(operation, item){
     }
 }
 
-$('body').on('click','.notebook-contextmenu-item',function(e){
-    e.preventDefault();
-    var operation = $(this).attr('data-operation');
-    noteBookContextClick(operation,this);
-});
+
 
 function newNotebook(){
     var newname = prompt();
@@ -770,127 +793,184 @@ function newNotebook(){
         loadNotelist();
     });
 }
+
+window.onresize = function () {
+    doLayout();
+}
+
+$('body').on('click','[title="Edit Mode"]',function(e){
+    e.preventDefault();
+    mode = (mode === 'edit') ? 'read' : 'edit';
+    if(mode === 'edit'){
+        loadNote(NOTEID);
+    }
+    doLayout();
+
+    simplemde.codemirror.refresh();
+});
+
+$('body').on('click','.notelist-newNote',newNote);
+
+$('[title="New Note"]').on('click',newNoteBelow);
+
+$('body').on('click','.notelist-item-subnote2',function(e){
+    e.preventDefault();
+    var notebook = $(this).attr('data-note');
+    newSubnote(notebook)
+});
+
+$('body').on('click','.notelist-load-note',function(e){
+    if(mode !== 'red'){
+        mode = 'edit';
+    }
+    $('.notelist-item').removeClass('notelist-item-contextmenu-show');
+    $('.notelist-item').removeClass('notelist-item-selected2');
+    
+    e.preventDefault();
+    var id = $(this).attr('data-note-id');
+    loadNote(id);
+});
+
+$('[title="Save"]').on('click',saveNote);
+$('body').on('click','.notebook-toggleNotebook',function(e){
+    e.preventDefault();
+    toggleNotebook(this);
+});
+$('body').on('click','#page-glass',hideProperties);
+
+$('body').on('click','.contextmenu-item',function(e){
+    e.preventDefault();
+    var operation = $(this).attr('data-operation');
+    noteContextClick(operation,this);
+});
+$('body').on('click','.notebook-contextmenu-item',function(e){
+    e.preventDefault();
+    var operation = $(this).attr('data-operation');
+    noteBookContextClick(operation,this);
+});
 $('body').on('click','[title="New Notebook"]',newNotebook);
 
-    var NoteLoding=false;
 
-    loadNotelist();
-    doLayout();
-    updateStatusBar("#bdc3c7", "Ready");
-
-    $("#btn-newnote").on('click',function(){
-        $.post("include/note.php",{
-            action:"newNote",
-            title:$("#input-newnote").val()
-        },
-        function(data,status){
-            // alert("Status: " + status + data );
-            loadNotelist();
-        });
+$("#btn-newnote").on('click',function(){
+    $.post("include/note.php",{
+        action:"newNote",
+        title:$("#input-newnote").val()
+    },
+    function(data,status){
+        // alert("Status: " + status + data );
+        loadNotelist();
     });
+});
 
-    $("#btn-newnotebook").on('click',newNotebook);
+$("#btn-newnotebook").on('click',newNotebook);
 
-    $("#btn-subnote").on('click',function(){
-        $.post("include/note.php",{
-            action:"newSubnote",
-            notebook:$("#input-subnote-book").val(),
-            title:$("#input-subnote-note").val()
-        },
-        function(data,status){
-            // alert("Status: " + status + data );
-            loadNotelist();
-        });
+$("#btn-subnote").on('click',function(){
+    $.post("include/note.php",{
+        action:"newSubnote",
+        notebook:$("#input-subnote-book").val(),
+        title:$("#input-subnote-note").val()
+    },
+    function(data,status){
+        // alert("Status: " + status + data );
+        loadNotelist();
     });
+});
 
-    document.onclick=function(event){
-        var e = event || window.event;
-        var doHide = true;
-        $(".contextmenu").each(function(){
-            var contextmenuPos = $(this).offset();
-            if( contextmenuPos.left <= e.clientX && e.clientX <= contextmenuPos.left+$(this).width() &&
-                contextmenuPos.top <= e.clientY && e.clientY <= contextmenuPos.top+$(this).height() ){
-                doHide = false;
-            }
-            // alert(contextmenuPos.x+"px "+contextmenuPos.y+"px "+e.clientX+"px "+e.clientY+"px ");
-        });
-
-
-        if(doHide){
-            if(noteContextID){
-                $("#notelist-item-"+noteContextID).removeClass("notelist-item-contextmenu-show");
-                noteContextID = 0;
-            }
-            if(notebook_id){
-                $('.notelist-item-notebook-title[title="'+notebook_id+'"]').removeClass("notebook-contextmenu-show");
-                notebook_id = 0;
-            }
-            $("#contextmenu-1").hide(150);
-            $("#contextmenu-2").hide(150);
+document.onclick=function(event){
+    var e = event || window.event;
+    var doHide = true;
+    $(".contextmenu").each(function(){
+        var contextmenuPos = $(this).offset();
+        if( contextmenuPos.left <= e.clientX && e.clientX <= contextmenuPos.left+$(this).width() &&
+            contextmenuPos.top <= e.clientY && e.clientY <= contextmenuPos.top+$(this).height() ){
+            doHide = false;
         }
+        // alert(contextmenuPos.x+"px "+contextmenuPos.y+"px "+e.clientX+"px "+e.clientY+"px ");
+    });
+
+
+    if(doHide){
+        if(noteContextID){
+            $("#notelist-item-"+noteContextID).removeClass("notelist-item-contextmenu-show");
+            noteContextID = 0;
+        }
+        if(notebook_id){
+            $('.notelist-item-notebook-title[title="'+notebook_id+'"]').removeClass("notebook-contextmenu-show");
+            notebook_id = 0;
+        }
+        $("#contextmenu-1").hide(150);
+        $("#contextmenu-2").hide(150);
+    }
+};
+
+var NoteLoding=false;
+
+loadNotelist();
+doLayout();
+updateStatusBar("#bdc3c7", "Ready");
+
+
+var oBox = document.getElementById("content"), 
+oLeft = document.getElementById("sidebar"), 
+oRight = document.getElementById("editor"), 
+oMove = document.getElementById("editor-move");
+
+oMove.onmousedown = function(e){
+    var winw = window.innerWidth
+        || document.documentElement.clientWidth
+        || document.body.clientWidth;
+    var disX = (e || event).clientX;
+    oMove.left = oMove.offsetLeft;
+    document.onmousemove = function(e){
+        var iT = oMove.left + ((e || event).clientX - disX);
+        var e=e||window.event,tarnameb=e.target||e.srcElement;
+        oMove.style.margin = 0;
+        iT < 100 && (iT = 100);
+        iT > oBox.clientWidth - 100 && (iT = oBox.clientWidth - 100);
+        oMove.style.left  = iT + "px";
+        oLeft.style.width = (iT - 48) + "px";
+        oRight.style.width = oBox.clientWidth - iT - 5 + "px";
+        oRight.style.left = iT + 5 + "px";
+
+        doLayout();
+        return false
     };
+    document.onmouseup = function(){
+        document.onmousemove = null;
+        document.onmouseup = null;
+        oMove.releaseCapture && oMove.releaseCapture();
+        
+    };
+    oMove.setCapture && oMove.setCapture();
+    return false;
+};
 
-    var oBox = document.getElementById("content"), 
-    oLeft = document.getElementById("sidebar"), 
-    oRight = document.getElementById("editor"), 
-    oMove = document.getElementById("editor-move");
 
-    oMove.onmousedown = function(e){
-        var winw = window.innerWidth
-            || document.documentElement.clientWidth
-            || document.body.clientWidth;
-        var disX = (e || event).clientX;
-        oMove.left = oMove.offsetLeft;
-        document.onmousemove = function(e){
-            var iT = oMove.left + ((e || event).clientX - disX);
-            var e=e||window.event,tarnameb=e.target||e.srcElement;
-            oMove.style.margin = 0;
-            iT < 100 && (iT = 100);
-            iT > oBox.clientWidth - 100 && (iT = oBox.clientWidth - 100);
-            oMove.style.left  = iT + "px";
-            oLeft.style.width = (iT - 48) + "px";
-            oRight.style.width = oBox.clientWidth - iT - 5 + "px";
-            oRight.style.left = iT + 5 + "px";
+updateEditorShow();
 
-            doLayout();
-            return false
-        };
-        document.onmouseup = function(){
-            document.onmousemove = null;
-            document.onmouseup = null;
-            oMove.releaseCapture && oMove.releaseCapture();
-            
-        };
-        oMove.setCapture && oMove.setCapture();
+simplemde.codemirror.on("change", function(e){
+    if(!NoteLoding){
+        updateEditorShow();
+        showNotsaveLable();
+        autosaveNote();
+    }
+});
+
+$(".CodeMirror-vscrollbar").attr("id","editor-ace-scrollbar");
+
+$("#editor-ace-scrollbar").on('scroll',function(){
+    var t = $(this)[0].scrollTop;
+    document.getElementById("editor-show").scrollTop=t * (document.getElementById("editor-show").scrollHeight-document.getElementById("editor-show").offsetHeight) / (document.getElementById("editor-ace-scrollbar").scrollHeight-document.getElementById("editor-ace-scrollbar").offsetHeight);
+});
+var timerId;
+
+$(document).on('keydown',function(e){
+    clearTimeout(timerId);
+    if( e.ctrlKey && e.which == 83 ){
+        timerId =  setTimeout(() => { saveNote(); }, 5000);
         return false;
-    };
-
-
-    updateEditorShow();
-
-    simplemde.codemirror.on("change", function(e){
-        if(!NoteLoding){
-            updateEditorShow();
-            showNotsaveLable();
-            autosaveNote();
-        }
-    });
-
-    $(".CodeMirror-vscrollbar").attr("id","editor-ace-scrollbar");
-
-    $("#editor-ace-scrollbar").on('scroll',function(){
-        var t = $(this)[0].scrollTop;
-        document.getElementById("editor-show").scrollTop=t * (document.getElementById("editor-show").scrollHeight-document.getElementById("editor-show").offsetHeight) / (document.getElementById("editor-ace-scrollbar").scrollHeight-document.getElementById("editor-ace-scrollbar").offsetHeight);
-    });
-    var timerId;
-    
-    $(document).on('keydown',function(e){
-        clearTimeout(timerId);
-        if( e.ctrlKey && e.which == 83 ){
-            timerId =  setTimeout(() => { saveNote(); }, 5000);
-            return false;
-        }
-    });
+    }
+});
 
 
 var matrixRegex = /(?:matrix\(|\s*,\s*)([-+]?[0-9]*\.?[0-9]+(?:[e][-+]?[0-9]+)?)/gi;

@@ -129,34 +129,31 @@
 		<div id="editor-move"></div>
 	 	<div id="editor">
 			<div id="editor-ace">
-			<textarea id="source"># Welcome to Marknote
+				<textarea id="source"># Welcome to Marknote
 Please select a __note__ in the list on the left.</textarea>
 			</div>
-			
+			<div id="editor-form"></div>
 			<div id="editor-show"></div>
-			<div id="editor-show-preprocess"></div>
 		</div>
 	</div>
-
 	<div id="contextmenu-1" class="contextmenu">
-		<div class="contextmenu-item" data-operation="open">		<i class="fa fa-file" aria-hidden="true"></i> Open</div>
-		<div class="contextmenu-item" data-operation="edit">	<i class="fa fa-pencil" aria-hidden="true"></i> Edit</div>
-		<div class="contextmenu-item" data-operation="rename">	<i class="fa fa-edit" aria-hidden="true"></i> Rename</div>
-		<div class="contextmenu-item" data-operation="clone">		<i class="fa fa-clone" aria-hidden="true"></i> Clone</div>
-		<!-- <div class="contextmenu-item" data-operation="share">		<i class="fa fa-share-alt" aria-hidden="true"></i> Share</div> -->
+		<div class="contextmenu-item" data-operation="open"><i class="fa fa-file" aria-hidden="true"></i> Open</div>
+		<div class="contextmenu-item" data-operation="edit"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</div>
+		<div class="contextmenu-item" data-operation="rename"><i class="fa fa-edit" aria-hidden="true"></i> Rename</div>
+		<div class="contextmenu-item" data-operation="clone"><i class="fa fa-clone" aria-hidden="true"></i> Clone</div>
+		<!-- <div class="contextmenu-item" data-operation="share"><i class="fa fa-share-alt" aria-hidden="true"></i> Share</div> -->
 		<!-- <div class="contextmenu-item" data-operation="export">	<i class="fa fa-external-link " aria-hidden="true"></i> Export</div> -->
-		<div class="contextmenu-item" data-operation="delete">		<i class="fa fa-trash" aria-hidden="true"></i> Delete</div>
-		<div class="contextmenu-item" data-operation="properties">	<i class="fa fa-info-circle" aria-hidden="true"></i> Properties</div>
+		<div class="contextmenu-item" data-operation="delete"><i class="fa fa-trash" aria-hidden="true"></i> Delete</div>
+		<div class="contextmenu-item" data-operation="properties"><i class="fa fa-info-circle" aria-hidden="true"></i> Properties</div>
 		<div class="contextmenu-item" data-operation="present">	<i class="fa fa-desktop" aria-hidden="true"></i> Presentation</div>
 	</div>
-
 	<div id="contextmenu-2" class="contextmenu">
 		<div class="notebook-contextmenu-item" data-operation="edit_template"><i class="fa fa-file" aria-hidden="true"></i> Edit Template</div>
 		<div class="notebook-contextmenu-item" data-operation="rename_notebook"><i class="fa fa-edit" aria-hidden="true"></i> Rename</div>
+		<div class="notebook-contextmenu-item" data-operation="notebook_form_builder"><i class="fa fa-check-square" aria-hidden="true"></i> Form Builder</div>
 		<div class="notebook-contextmenu-item" data-operation="delete_notebook"><i class="fa fa-trash" aria-hidden="true"></i> Delete</div>
 		<div class="notebook-contextmenu-item" data-operation="notebook_properties"><i class="fa fa-info-circle" aria-hidden="true"></i> Properties</div>
 	</div>
-
 	<div id="page-glass"></div>
 	<div id="sidebar-properties">
 		<div id="sidebar-properties-header">

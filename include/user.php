@@ -151,7 +151,6 @@
 	
 		foreach ($elements as $key => $element) {
 			$current_element = $element;
-			unset($elements[$key]);
 			if ($current_element['parent_id'] == $parentId) {
 				$children = buildTree($elements, $current_element['ID'], $key);
 				if ($children) {
